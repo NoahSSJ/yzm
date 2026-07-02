@@ -186,16 +186,16 @@ class AMS():
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"',
     }
-    # session.proxy = {
-    #     "http":"127.0.0.1:7890",
-    #     "https":"127.0.0.1:7890"
-    # }
+    session.proxy = {
+        "http":"127.0.0.1:7890",
+        "https":"127.0.0.1:7890"
+    }
     
     def __init__(self, p: str, save_name: str):
         self.p = p
         self.save_dir = Path(__file__).parent / save_name
         os.makedirs(self.save_dir, exist_ok=True)
-        self._handler_id = logger.add("run.log", level="INFO", rotation="10 MB", retention="5 days", encoding="utf-8")
+        # self._handler_id = logger.add("run.log", level="INFO", rotation="10 MB", retention="5 days", encoding="utf-8")
 
     def get_captcha(self):
         js_path = Path(__file__).parent / 'reverse' / 'a.js'
@@ -336,8 +336,8 @@ class AMS():
             json_str = match.group(1)
             json_dict = json.loads(json_str)
             logger.info(json_dict)
-            msg = json_dict['msg']
-            if msg == 'ok':
+            msg = json_dict['data']['result']
+            if msg == True:
                 logger.success(f"验证码验证成功")
             else:
                 logger.error(f"验证码验证失败")
@@ -402,7 +402,7 @@ class AMS():
 
 if __name__ == "__main__":
     for i in range(10):
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(1, 10))
         AMS.run('139' + str(random.randint(00000000, 99999999)), 'local')
 
 
