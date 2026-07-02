@@ -11,7 +11,7 @@ import time
 import numpy as np
 import cv2
 import ddddocr
-import logging
+from loguru import logger
 import uuid
 import execjs
 import string
@@ -195,6 +195,7 @@ class AMS():
         self.p = p
         self.save_dir = Path(__file__).parent / save_name
         os.makedirs(self.save_dir, exist_ok=True)
+        self._handler_id = logger.add("run.log", level="INFO", rotation="10 MB", retention="5 days", encoding="utf-8")
 
     def get_captcha(self):
         js_path = Path(__file__).parent / 'reverse' / 'a.js'
@@ -303,9 +304,9 @@ class AMS():
             'ext': encrypt(xor_encode(token, '1' + ',' + str(len(trace_arr)))), 
         }
         data = json.dumps(data_dict, separators=(',', ':'))
-        print('1' + ',' + str(len(trace_arr)))
-        print(len(trace_arr))
-        print(len(encrypted_trace_arr))
+        # print('1' + ',' + str(len(trace_arr)))
+        # print(len(trace_arr))
+        # print(len(encrypted_trace_arr))
         params = {
             'referer': 'https://user.zhihuishu.com/zhsuser/register',
             'zoneId': 'CN31',
@@ -334,7 +335,12 @@ class AMS():
         if match := re.search(fr'{callback}\((.*?)\)', response.text, re.S):
             json_str = match.group(1)
             json_dict = json.loads(json_str)
-            pprint(json_dict)
+            logger.info(json_dict)
+            msg = json_dict['msg']
+            if msg == 'ok':
+                logger.success(f"验证码验证成功")
+            else:
+                logger.error(f"验证码验证失败")
             token = json_dict['data']['token']
             validate = json_dict['data']['validate']
             zone_id = json_dict['data']['zoneId']
@@ -349,7 +355,7 @@ class AMS():
         fingerprint = r"Cv/eunqBTDEzhN0tijp4ai+dRwqcj8LKilkHKjG3ewS+YBlS90HCZ8RT5tWJRaSapGx5ctTdZ1xn5c82dt6/LcIAwUBkJLXE3QyI\4G3iTi3uKOXMg3MAyih1A8CkTDXD4KtDhLCByZvdOinr6Wr4JI\DUNHCj2IKKJMcT2gObR8/aYu:1782243703788"
         final_validate = _0xab267f(short_validate, fingerprint, zone_id)
         data = f'validate={final_validate}&mobile={self.p}'
-        print(data)
+        logger.info(data)
         # data= '1'
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -370,7 +376,7 @@ class AMS():
         }
         response = AMS.session.post('https://user.zhihuishu.com/zhsuser/register/code2.do',headers=headers, data=data)
         # print(response.text)
-        pprint(response.json())
+        logger.info(response.json())
 
     @staticmethod
     def get_slide_x(bg_path: Path, slide_path: Path):
@@ -395,10 +401,9 @@ class AMS():
         obj.send_sms(validate, zone_id)
 
 if __name__ == "__main__":
-    AMS.run('13987509723', 'local')
-
-    
-         
+    for i in range(10):
+        time.sleep(random.randint(1, 3))
+        AMS.run('139' + str(random.randint(00000000, 99999999)), 'local')
 
 
 
